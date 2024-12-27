@@ -1,7 +1,7 @@
 # Create:20241226
 # modify codes using class and create testing code
 
-
+from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_PARAGRAPH_ALIGNMENT
 from docx.enum.section import WD_ORIENTATION, WD_ORIENT, WD_SECTION
 from docx.enum.style import WD_STYLE_TYPE, WD_STYLE
@@ -11,6 +11,8 @@ from docx.oxml.shared import OxmlElement
 from docx.oxml import OxmlElement
 import copy
 
+import os
+import re
 
 class DocumentFormatSetter:
     def __init__(self, document):
@@ -32,10 +34,10 @@ class DocumentFormatSetter:
         - 如果设置页面属性时出现底层库相关的异常，向上传递异常，方便排查问题。
         """
         try:
-            section = self.document.sections[-1]
-            section.page_width = Cm(page_width)
-            section.page_height = Cm(page_height)
-            section.orientation = orientation
+            section = self.document.sections[-1]  # 创建一个新的section对象
+            section.page_width = Cm(page_width)# 设置纸张大小为A4
+            section.page_height = Cm(page_height)# 设置纸张大小为A4
+            section.orientation = orientation# 设置页面方向为纵向
         except Exception as e:
             raise Exception(f"设置页面属性时出现错误: {e}")
 
@@ -92,17 +94,18 @@ class DocumentFormatSetter:
 
         异常处理:
         - 若设置段落格式时出现问题（例如非法的参数值、底层库错误等），向上抛出异常以便处理。
+        设置段落间距，默认使用公文的
         """
         try:
-            for para in self.document.paragraphs:
-                para_format = para.paragraph_format
-                para_format.alignment = alignment
-                para_format.left_indent = Pt(left_indent)
+            for para in self.document.paragraphs:   #遍历 document 中的所有段落
+                para_format = para.paragraph_format #获取当前段落的格式设置对象，并将其赋值给 para_format
+                para_format.alignment = alignment   #设置段落的对齐方式
+                para_format.left_indent = Pt(left_indent)   #段落的左缩进和右缩进
                 para_format.right_indent = Pt(right_indent)
-                para_format.space_before = Pt(space_before)
+                para_format.space_before = Pt(space_before) #段落前和段落后的间距
                 para_format.space_after = Pt(space_after)
-                para_format.line_spacing = Pt(line_spacing)
-                para_format.first_line_indent = Pt(first_line_indent)
+                para_format.line_spacing = Pt(line_spacing) #设置段落的行间距
+                para_format.first_line_indent = Pt(first_line_indent)   #设置段落的首行缩进,为啥需要它，呵呵
         except Exception as e:
             raise Exception(f"设置段落格式时出现错误: {e}")
 
@@ -141,21 +144,22 @@ class DocumentFormatSetter:
         - 若在设置段落字体、对齐等格式过程中出现底层库相关问题（如字体不支持等），抛出异常方便排查。
         """
         try:
-            paragraph.alignment = para_alignment
-            paragraph_format = paragraph.paragraph_format
-            paragraph.line_space_rule = WD_LINE_SPACING.EXACTLY
+            paragraph.alignment = para_alignment # 默认设置段落居中
+            paragraph_format = paragraph.paragraph_format   #设置行间距
+            paragraph.line_space_rule = WD_LINE_SPACING.EXACTLY     #固定值
             paragraph_format.line_spacing = Pt(28)
             paragraph_format.first_line_indent = Pt(font_size * first_indent)
-            paragraph_format.left_indent = Pt(left_indent)
+            # 406400代表两字符，先在word上设置好，再用程序反向查找    document.paragraphs[1]. paragraph_format.first_line_indent
+            paragraph_format.left_indent = Pt(left_indent)  #设置段落缩进
             paragraph_format.right_indent = Pt(right_indent)
-            paragraph_format.space_before = Pt(space_before)
+            paragraph_format.space_before = Pt(space_before)#设置段落间距
             paragraph_format.space_after = Pt(space_after)
 
-            for run in paragraph.runs:
+            for run in paragraph.runs:  # 设置中文字体
                 run.font.name = font_name_ch
                 run._element.rPr.rFonts.set(qn('w:eastAsia'), font_name_ch)
-                run.font.name = font_name_west
-                run.font.size = Pt(font_size)
+                run.font.name = font_name_west  # 设置西文字体
+                run.font.size = Pt(font_size)   #12:小四，18：小二，22：二号  16：三号
         except Exception as e:
             raise Exception(f"设置段落 {paragraph.text} 格式时出现错误: {e}")
 
@@ -239,7 +243,7 @@ class DocumentFormatSetter:
         设置主送机关、落款单位和时间等行的格式（仿宋_GB2312字体，对应对齐方式等）。
 
         参数:
-        lines (list, 可选): 对应行号列表，默认值为[2]
+        lines (list, 可选): 对应行号列表，默认值为[2],第三行
 
         返回:
         None
@@ -316,6 +320,7 @@ class DocumentFormatSetter:
         try:
             for paragraph in self.document.paragraphs:
                 text = paragraph.text
+                # 查找第一个句号的位置,但是也存在没有结尾的句号，只有一句话的情况，如何解决。
                 index = text.find('。')
                 if index!= -1:
                     part1 = text[:index + 1]
@@ -339,8 +344,8 @@ class DocumentFormatSetter:
 
                         paragraph.runs[0].clear()
                 else:
-                    pattern = r'^（[一二三四五六七八九十]+）(.*?)'
-                    match = re.match(pattern, text)
+                    pattern = r'^（[一二三四五六七八九十]+）(.*?)'  #没用到它哈
+                    match = re.match(pattern, text)    #没用到它哈
                     if self.is_title_third(text):
                         self.paragraph_set(
                             paragraph,
@@ -478,3 +483,27 @@ class DocumentFormatSetter:
             for cell in row.cells:
                 for border in cell._element.findall('.//w:tcBorders'):
                     border.set(qn('w:color'), border_color.rgb)
+
+    def document_to_offical_format(self, hides_first=[0]):
+        # 将源文件转为新的文件，按说也可以不转，直接处置即可
+
+        # 设置页面
+        self.pages_set(page_width=21, page_height=29.7, orientation=WD_ORIENT.PORTRAIT)
+        # 设置页边距，可以从参数文件中读取，不用修改函数，尝试使用JSON
+        self.sections_set(left=2.8, right=2.6, top=3.7, bottom=3.5)
+        # 设置段落边距等
+        self.para_set_indent()
+
+        # 设置正文，全部先设置为正文格式，再逐个调整各级标题
+        self.paragraphs_set_all()
+        # 设置各级标题
+        self.paragraphs_set_hides_first( lines=hides_first)
+        self.paragraphs_set_hides_second()
+        self.paragraphs_set_hides_third()
+        # 设置主送机关和落款单位、时间
+        self.paragraphs_set_inscribe()
+        # 添加页码，设置，如果页面超过2页，则添加，另外，如果
+        # self.InsertPageNumber()
+
+        # 保存为新的文件
+        return self.document

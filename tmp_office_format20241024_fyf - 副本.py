@@ -1,93 +1,17 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[25]:
-
-
-# Generating_document_format_yuxingruyu20240730
-#生成几个独立的函数
-# 1.标准公文，一行标题，主送、落款单位和日期# 
-# 2.标准公文，2行标题，主送、落款单位和日期
-# 3.普通公文，1行标题， 无主送、落款单位和日期
-#4.条例，个别需要修改的地方，如加粗第几章，第几条，居中的地方
-#5.缩小版，打印较多的材料用
-
-#Modify:20241217
-# 生成可出售版本，带广告
-# 免费版本：当前文件夹下，所有docx、txt文件，可以在原基础上生成带主送落款和只有标题与正文的2种，固定格式。
-#会员版本，增加定制格式功能，增加子目录修改公文格式功能
-#对标网络售卖的其他软件
-#Modify:20241024
-
-#使用pycharm,单独使用main.py，生成exe文件
-
-#Modify:20240802
-#增加题目下面可加可选的1-2行楷体居中的日期、姓名（领导讲话、发言材料）
-#Modify:20240801
-#增加题目下面可加可选的1-2行楷体居中的日期、姓名（领导讲话、发言材料）
-# 2.标准公文，2行标题，主送、落款单位和日期
-# 3.普通公文，1行标题， 无主送、落款单位和日期
-
-#Modify:20240731
-#设置为其他程序可调用的
-#终于有了自己的成功的库文件
-#实现了多类型的参数，如允许参数为docx\txt\str三种格式的一种
-#增加二级标题允许以一行的方式存在，注意检查方法和顺序,成功
-#完善了部分错误检查，增加容错功能
-#Modify:20240730
-#把重要的功能、可调用的函数记录下来，时间长了，也能看明白
-#把原来特例的函数通用化，加上参数（或关键字参数）
-#Modify:20240711
-#使用函数，大改
-
-#modify:20230814，设置为一个函数
-#增加识别txt文件，并先全部转换为docx文件
-#modify:20230706增加生成的文件名上增加日期
-#在run中匹配公文二级标题。使用.text
-#？？？页面下端会有空白行，原因不详。
-#Modify:20230608增加了插入页码和设定A4纸的功能
-#迷信于AI和微信搜索，始终没有找到插入页码的方法。通过抖音搜索到了，再查百度，也能找到。
-#谁有用，就用谁，不行就换一家。不迷恋，不执著。
-#Create:20230607
-#插入页码的功能没有实现
-#三级标题，再根据实际变化一下。
-#标题与第一段落之间要有空行
-#已经修正：标题和主送机关不能到最前面顶格。
-#使用python-docx实现将word文件调整为公文格式(或指定的格式)
-#比较稳妥的方式是新生成一个word,不受原来的干扰，而导入的文件，只读取内容即可，读作文本
-
-
-# In[ ]:
-
-
-
-
-
-# In[26]:
 
 
 # import docx
-from docx import Document
-
-from docx.shared import Cm
-from docx.shared import Pt
-from docx.shared import Inches
-from docx.shared import RGBColor
-
-from docx.oxml.ns import qn
-from docx.oxml.shared import OxmlElement  #这个对不对
-from docx.oxml import OxmlElement
-
-from docx.enum.text import WD_ALIGN_PARAGRAPH  
-from docx.enum.text import WD_LINE_SPACING
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 
-from docx.enum.section import WD_ORIENTATION
-from docx.enum.section import WD_ORIENT, WD_SECTION
 
-from docx.enum.style import WD_STYLE_TYPE
-from docx.enum.style import WD_STYLE
+
+
+
+
+
 
 import os
 import re
@@ -103,313 +27,13 @@ from pathlib import Path
 
 
 
-# In[ ]:
 
 
-
-
-
-# In[27]:
-
-
-#从docx文档中读取全部文本
-def get_text(file_name):
-    '''从docx文档中读取全部文本'''
-    doc = docx.Document(file_name)
-    full_text = []
-    for para in doc.paragraphs:
-        full_text.append(para.text)
-    return '\n'.join(full_text)
-
-
-# def docx_old_to_docx_new(docx_path_in):
-#     '''
-#     #导入需要修改的文件的文本内容     
-#     #生成一个新的docx文档，防止被原文档的设置干扰
-#     '''
-#     doc_in_text = get_text(docx_path_in)
-
-    
-#     document = docx.Document()
-#     #将导入的文件文本，分成各行，分别生成不同的段落。不分的话，是在同一个段落中。
-    
-#     list_text = doc_in_text.split('\n')#不小心实现了删除全部空行
-#     for text in list_text:
-#         document.add_paragraph(text)
-    
-#     return document
 
 # import docx
 # import os
 
-def docx_old_to_docx_new(input_data):
-    '''
-    # 导入需要修改的文件的文本内容     
-    # 生成一个新的 docx 文档，防止被原文档的设置干扰
-    '''
-    if isinstance(input_data, str):
-        if os.path.isfile(input_data) and input_data.endswith('.docx'):
-            doc_in_text = get_text(input_data)
-        else:
-            doc_in_text = input_data
-    elif isinstance(input_data, docx.document.Document):
-        doc_in_text = '\n'.join([p.text for p in input_data.paragraphs])
-    else:
-        raise ValueError("输入参数类型不正确，应为 str（docx 文件路径）或 docx.document.Document 类型")
 
-    document = docx.Document()
-    # 将导入的文件文本，分成各行，分别生成不同的段落。不分的话，是在同一个段落中。
-    list_text = doc_in_text.split('\n')  # 不小心实现了删除全部空行
-    for text in list_text:
-        if text.strip():  # 增加判断，去除空行
-            document.add_paragraph(text)
-
-    return document
-
-def pages_set(document,page_width = 21 ,page_height =29.7 ,orientation = WD_ORIENT.PORTRAIT):
-    '''
-    #设置纸张大小,默认为A4，，使用单位为厘米，纵向'''
-    # 创建一个新的section对象
-    section = document.sections[-1]  #为什么只设置最后一个节的就可以
-
-    # 设置纸张大小为A4
-    section.page_width = Cm(page_width)
-    section.page_height = Cm(page_height)
-
-    # 设置页面方向为纵向
-    section.orientation = orientation
-
-    
-#设置页边距
-def sections_set(document, left = 2.8, right = 2.6, top = 3.7, bottom = 3.5):
-    sections = document.sections #为什么设置所有的节的
-    for section in sections:
-        section.left_margin = Cm(left)
-        section.right_margin = Cm(right)
-        section.top_margin = Cm(top)
-        section.bottom_margin = Cm(bottom)
-
-        
-        
-        
-#匹配二级标题（公文的一级标题）
-def is_title_second(string):
-    pattern = r'^[一二三四五六七八九十]+、'
-    match = re.match(pattern, string)
-    if match:
-        return True
-    else:
-        return False
-
-    
-#匹配三级标题（公文的二级标题，与实际还不同，要修改）
-def is_title_third(string):
-    pattern = r'^（[一二三四五六七八九十]+）'
-    match = re.match(pattern, string)
-    if match:
-        return True
-    else:
-        return False
-    
-#通用匹配，尽量函数化，减少独立的类似的函数
-def match_str(string, pattern):
-#     pattern = r'^（[一二三四五六七八九十]+）'
-    '''匹配文字内容是否符合pattern要求，如各级标题'''
-    match = re.match(pattern, string)
-    if match:
-        return True
-    else:
-        return False
-    
-#设置段落格式，左右上下缩进为0，行距28磅
-
-def para_set_indent(
-    document,
-    alignment = WD_ALIGN_PARAGRAPH.JUSTIFY,
-    left_indent = 0,
-    right_indent = 0,
-    space_before = 0,
-    space_after = 0,
-    line_spacing = 28,
-    first_line_indent = 28
-):
-    '''设置段落间距，默认使用公文的'''
-    for para in document.paragraphs: #遍历 document 中的所有段落
-        para_format = para.paragraph_format #获取当前段落的格式设置对象，并将其赋值给 para_format
-        para_format.alignment = alignment #设置段落的对齐方式
-        para_format.left_indent = Pt(left_indent) #段落的左缩进和右缩进
-        para_format.right_indent = Pt(right_indent)
-        para_format.space_before = Pt(space_before)#段落前和段落后的间距
-        para_format.space_after = Pt(space_after)
-        para_format.line_spacing = Pt(line_spacing)#设置段落的行间距
-        para_format.first_line_indent = Pt(first_line_indent) #设置段落的首行缩进,为啥需要它，呵呵
-        
-        
-#设置段落，行间距28，首行缩进2字符，段前后为0，两端对齐,中文字体，西文字体
-#"方正小标宋简体""黑体""楷体_GB2312""仿宋_GB2312"
-
-def paragraph_set(
-    paragraph, 
-    font_name_ch = "方正小标宋简体", 
-    font_name_west = "Times New Roman", 
-    font_size = 22 ,
-    para_alignment = WD_ALIGN_PARAGRAPH.CENTER, 
-    first_indent = 2,
-    left_indent = 0,
-    right_indent = 0,
-    space_before = 0,
-    space_after = 0
-):
-    # 默认设置段落居中
-    paragraph.alignment = para_alignment
-    
-    #设置行间距
-    paragraph_format = paragraph.paragraph_format
-    paragraph.line_space_rule = WD_LINE_SPACING.EXACTLY #固定值
-    paragraph_format.line_spacing = Pt(28)
-    #paragraph_format.first_line_indent = Pt(28)
-    #paragraph_format.first_line_indent = 406400   #406400代表两字符，先在word上设置好，再用程序反向查找    document.paragraphs[1]. paragraph_format.first_line_indent
-    paragraph_format.first_line_indent = Pt(font_size * first_indent)  #？？？感觉是字体大小的两倍，未验证。
-    
-    #设置段落缩进
-    paragraph_format.left_indent = Pt(left_indent)
-    paragraph_format.right_indent = Pt(right_indent)
-    #设置段落间距
-    paragraph_format.space_before = Pt(space_before)
-    paragraph_format.space_after = Pt(space_after)
-    
-    
-    # 设置中文字体
-    for run in paragraph.runs:
-        run.font.name = font_name_ch
-        run._element.rPr.rFonts.set(qn('w:eastAsia'), font_name_ch)
-
-        # 设置西文字体
-        run.font.name = font_name_west
-        run.font.size = Pt(font_size)
-        #12:小四，18：小二，22：二号  16：三号    
-
-        
-# 设置正文
-def paragraphs_set_all(document):
-    #先设置正文格式
-    for paragraph in document.paragraphs:
-        paragraph_set(paragraph,font_name_ch = "仿宋_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.JUSTIFY, first_indent = 2)
-
-
-#设置各级标题
-def paragraphs_set_hides_first(document,lines = [0]):
-#     lines = [0],取第0行
-    #设置标题,有时侯需要设置2行
-    for line in lines:
-        paragraph_set(document.paragraphs[line],font_name_ch = "方正小标宋简体", font_name_west = "Times New Roman", font_size = 22, para_alignment = WD_ALIGN_PARAGRAPH.CENTER, first_indent = 0 )
-    #document.paragraphs[0].paragraph_format.left_indent = Pt(0)
-    #document.paragraphs[0].paragraph_format.first_line_indent = Pt(0)
-
-#设置各级标题
-def paragraphs_set_date_and_name_under_title(document,lines = [1]):
-    #设置标题,有时侯需要设置2行
-    for line in lines:
-        paragraph_set(document.paragraphs[line],font_name_ch = "楷体_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.CENTER, first_indent = 0 )
-    #document.paragraphs[0].paragraph_format.left_indent = Pt(0)
-    #document.paragraphs[0].paragraph_format.first_line_indent = Pt(0)
-
-    #设置主送机关、落款单位和时间
-def paragraphs_set_inscribe(document,lines = [2]):
-    #设置主送机关,第三行
-    for line in lines:
-        paragraph_set(document.paragraphs[line],font_name_ch = "仿宋_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.LEFT, first_indent = 0 )
-    #document.paragraphs[2].paragraph_format.left_indent = Pt(0)    
-    #document.paragraphs[2].paragraph_format.first_line_indent = Pt(0)
-        #设置落款单位
-    paragraph_set(document.paragraphs[-2],font_name_ch = "仿宋_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.RIGHT, first_indent = 0 )
-        #设置落款时间，最后面空4格
-
-    paragraph_set(document.paragraphs[-1],font_name_ch = "仿宋_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.RIGHT, first_indent = 4 )
-    document.paragraphs[-1].paragraph_format.right_indent = Pt( 16 * 4)
-
-    
-    
-#设置二级标题
-def paragraphs_set_hides_second(document):
-    for paragraph in document.paragraphs:
-        string = paragraph.text
-        if is_title_second(string):
-            paragraph_set(paragraph,font_name_ch = "黑体", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.JUSTIFY)
-
-            
-#pattern = r'^（[一二三四五六七八九十]+）(.*)。'
-
-
-#设置三级标题，只第一句。
-def paragraphs_set_hides_third(document):
-    for paragraph in document.paragraphs:
-        text = paragraph.text
-        # 查找第一个句号的位置,但是也存在没有结尾的句号，只有一句话的情况，如何解决。
-        index = text.find('。')
-
-        if index != -1:
-            # 将文本分成两个部分
-            part1 = text[:index+1]
-            part2 = text[index+1:]
-
-            pattern = r'^（[一二三四五六七八九十]+）(.*?)。'
-            '''在这个模式中：
-            ^ 依旧表示匹配字符串的开头。
-            （[一二三四五六七八九十]+） ：
-            （ 和 ） 是汉字的左括号和右括号。
-            [一二三四五六七八九十]+ 表示匹配由“一”到“十”这些汉字组成的一个或多个连续的字符序列。
-            (.*?) ：
-            .* 表示匹配任意字符（除了换行符）零次或多次。
-            ? 表示非贪婪模式，即尽可能少地匹配字符，以确保不会过度匹配后面的内容。
-            。 匹配汉字的句号“。”
-            这个正则表达式整体用于匹配以汉字左括号开头，接着是由“一”到“十”这些汉字组成的一个或多个连续的字符序列，再跟着汉字右括号，然后是任意内容，最后以汉字句号结束的字符串。
-            例如，它可以匹配 “（一） 这是一些内容。” 、“（八） 更多的内容。” 等字符串。'''
-            
-            match = re.match(pattern, part1)
-
-
-
-            if match:
-                # 创建两个run
-                run1 = paragraph.add_run(part1)
-                run2 = paragraph.add_run(part2)
-
-                # 设置run的格式和样式
-                run1.font.name = '楷体_GB2312'
-                run1._element.rPr.rFonts.set(qn('w:eastAsia'), '楷体_GB2312')
-
-                # 设置西文字体
-                run1.font.name = "Times New Roman"
-                run1.font.size = Pt(16)
-
-                if run2:
-                    # 设置run的格式和样式
-                    run2.font.name = '仿宋_GB2312'
-                    run2._element.rPr.rFonts.set(qn('w:eastAsia'), '仿宋_GB2312')
-
-                    # 设置西文字体
-                    run2.font.name = "Times New Roman"
-                    run2.font.size = Pt(16)
-
-                paragraph.runs[0].clear()
-                
-        #如果没有句号，再判断是否只有一句话
-        else:
-            pattern = r'^（[一二三四五六七八九十]+）(.*?)'
-            match = re.match(pattern, text)
-            if is_title_third(text):
-                paragraph_set(paragraph,font_name_ch = "楷体_GB2312", font_name_west = "Times New Roman", font_size = 16, para_alignment = WD_ALIGN_PARAGRAPH.JUSTIFY)
-
-
-
-            
-
-
-# In[28]:
-
-
-import docx
 
 def is_single_sentence(paragraph_text):
     """
@@ -525,36 +149,6 @@ def delete_paragraphs_null_lines(document):
 # In[31]:
 
 
-#将txt文件转换为docx文件
-def txt_to_docx(txt_file, docx_file):
-    # 打开txt文件
-    with open(txt_file, 'r', encoding = 'utf-8') as f:
-        content = f.read()
-
-    # 将txt内容按照换行符进行分割,确保换行符不变。
-    lines = content.split('\n')
-
-    # 创建一个新的Word文档
-    doc = Document()
-
-    # 将每一行文本添加到docx文档中
-    for line in lines:
-        doc.add_paragraph(line)
-
-
-    # 保存为docx文件
-    doc.save(docx_file)
-    return doc
-    
-#将指定文件夹中的txt文件转换为docx文件
-def txt_to_docx_all(folder_path_in):
-    for file_name_in in os.listdir(folder_path_in):
-        if file_name_in.endswith('.txt'):
-            txt_path_in = os.path.join(folder_path_in, file_name_in)
-            #docxs.append(docx_path_in)
-            docx_path_out = txt_path_in[:-3] + 'docx'
-            
-            txt_to_docx(txt_path_in, docx_path_out)
 
 
 # In[32]:
@@ -587,94 +181,12 @@ def docx_to_offical_format(docx_path_in, docx_path_out,hides_first =  [0,1]):
     
 
 
-# In[33]:
 
 
 import docx
 import json
 
-def file_to_docx(input_file, docx_path_out, hides_first=[0, 1],have_inscribe = True,date_and_name_under_title_flag = False,date_and_name_under_title_numbers = [1]):
-    """
-    根据输入文件的类型进行处理，如果是docx文件则直接处理，
-    如果是txt文件则转换为docx后处理，如果是字符串则直接处理
 
-    参数：
-    input_file (str): 输入的文件路径或字符串
-    docx_path_out (str): 输出的docx文件路径
-    hides_first (list, 可选): 一些控制参数，默认为 [0, 1]
-    默认有主送、落款
-    返回：
-    None
-    """
-    if input_file.endswith('.txt'):
-        # 将txt文件转换为docx格式并处理
-        doc = txt_to_docx_converted(input_file)
-    elif input_file.endswith('.docx'):
-        # 处理输入为docx文件的情况
-        doc = docx.Document(input_file)
-    elif isinstance(input_file, str):
-        # 处理输入为字符串的情况
-        doc = str_to_docx(input_file)
-    else:
-        # 处理输入为docx文件的情况
-        doc = docx.Document(input_file)
-
-    doc = docx_old_to_docx_new(doc)
-    # 设置页面
-    pages_set(doc)
-    # 设置页边距，可以从参数文件中读取，不用修改函数，尝试使用 JSON
-    sections_set(doc, left=2.8, right=2.6, top=3.7, bottom=3.5)
-    # 设置段落边距等
-    para_set_indent(doc)
-
-    # 设置正文，全部先设置为正文格式，再逐个调整各级标题
-    paragraphs_set_all(doc)
-    # 设置各级标题
-    paragraphs_set_hides_first(doc, lines=hides_first)
-    paragraphs_set_hides_second(doc)
-    paragraphs_set_hides_third(doc)
-
-    #如果有标题下面的日期和姓名，则改之
-    if date_and_name_under_title_flag:
-        paragraphs_set_date_and_name_under_title(doc,lines = date_and_name_under_title_numbers)
-
-    # 设置主送机关和落款单位、时间,默认为真，执行之
-    if have_inscribe: # = True
-        paragraphs_set_inscribe(doc)
-
-    # 添加页码，设置，如果页面超过 2 页，则添加，另外，如果
-    InsertPageNumber(doc)
-
-    # 保存为新的文件
-    doc.save(docx_path_out)
-    return doc
-
-
-# 将txt文件转换为docx文件
-def txt_to_docx_converted(txt_file):
-    """
-    打开txt文件，将内容转换为docx格式
-
-    参数：
-    txt_file (str): txt 文件路径
-
-    返回：
-    docx.Document: 转换后的 Word 文档对象
-    """
-    with open(txt_file, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # 将txt内容按照换行符进行分割, 确保换行符不变。
-    lines = content.split('\n')
-
-    # 创建一个新的 Word 文档
-    doc = docx.Document()
-
-    # 将每一行文本添加到 docx 文档中
-    for line in lines:
-        doc.add_paragraph(line)
-
-    return doc
 
 import docx
 
@@ -1045,11 +557,7 @@ docx_path_out_docx = 'D:\\工作自动化\\生成公文格式20240730\\未调整
 txt_path_in_tmp = 'D:\\工作自动化\\生成公文格式20240730\\未调整的源文件\\111.txt'
 txt_path_in_tmp222 = 'D:\\工作自动化\\生成公文格式20240730\\未调整的源文件\\222.txt'
 docx_path_in_tmp = 'D:\\工作自动化\\生成公文格式20240730\\未调整的源文件\\111.docx'
-# file_to_docx(input_file, docx_path_out_str, hides_first=[0, 1])
-# file_to_docx(docx_path_in_tmp, docx_path_out_docx, hides_first=[0, 1])
-# file_to_docx(txt_path_in_tmp, docx_path_out_txt, hides_first=[0, 1])
-# file_to_docx(input_file, docx_path_out, hides_first=[0, 1],have_inscribe = True)
-# file_to_docx(txt_path_in_tmp, docx_path_out_txt, hides_first=[0],have_inscribe = False)
+
 
 
 # In[43]:
